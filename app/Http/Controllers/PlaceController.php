@@ -56,6 +56,10 @@ public function pending()
             'map_iframe' => 'nullable|string',
             'image_link' => 'nullable|image|mimes:jpeg,png,jpg,gif,svg|max:2048', 
             'status' => 'nullable|string',
+            'entrance' => 'nullable|string',
+            'pricing' => 'nullable|string',
+            'activities' => 'nullable|string',
+            'history' => 'nullable|string',
         ]);
 
 
@@ -98,42 +102,40 @@ public function pending()
      * @param  \App\Models\Place  $place
      * @return \Illuminate\Http\JsonResponse
      */
-    public function update(Request $request, Place $place)
+    public function update(Request $request, $id)
     {
-
-        $request->validate([
-            'name' => 'required|string|max:255',
-            'place_name' => 'required|string|max:255',
-            'address' => 'required|string',
-            'email_address' => 'nullable|email',
-            'contact_no' => 'nullable|string',
-            'description' => 'nullable|string',
-            'virtual_iframe' => 'nullable|string',
-            'map_iframe' => 'nullable|string',
-            'image_link' => 'nullable|image|mimes:jpeg,png,jpg,gif,svg|max:2048',
-            'status' => 'nullable|string',
-        ]);
-
-     
-        if ($request->hasFile('image_link') && $request->file('image_link')->isValid()) {
- 
-            if ($place->image_link && Storage::disk('public')->exists($place->image_link)) {
-                Storage::disk('public')->delete($place->image_link);
-            }
-
-         
-            $imageLink = $request->file('image_link')->store('places', 'public');
-            $place->image_link = $imageLink;
+        $place = Place::findOrFail($id);
+    
+        // Handle image upload if present
+        if ($request->hasFile('image_link')) {
+            $image = $request->file('image_link');
+            $imagePath = $image->store('public/images');
+            $place->image_link = str_replace('public/', 'storage/', $imagePath);
         }
-
-
-        $place->update($request->only(['name', 'place_name', 'address', 'email_address', 'contact_no', 'description', 'virtual_iframe', 'map_iframe', 'status']));
-
+    
+        // Update other fields
+        $place->name = $request->input('name');
+        $place->place_name = $request->input('place_name') ?? null;
+        $place->address = $request->input('address') ?? null;
+        $place->email_address = $request->input('email_address') ?? null;
+        $place->contact_no = $request->input('contact_no') ?? null;
+        $place->description = $request->input('description') ?? null;
+        $place->virtual_iframe = $request->input('virtual_iframe') ?? null;
+        $place->map_iframe = $request->input('map_iframe') ?? null;
+        $place->status = $request->input('status') ?? 'Pending'; 
+        $place->entrance = $request->input('entrance') ?? null;
+        $place->history = $request->input('history') ?? null;
+        $place->pricing = $request->input('pricing') ?? null;
+        $place->activities = $request->input('activities') ?? null;
+    
+        $place->save();
+    
         return response()->json([
             'message' => 'Place updated successfully',
-            'place' => $place
+            'data' => $place
         ]);
     }
+    
 
     /**
      * Remove the specified place from the database.

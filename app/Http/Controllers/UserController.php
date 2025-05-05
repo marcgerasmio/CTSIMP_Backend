@@ -17,22 +17,26 @@ class UserController extends Controller
      */
     public function store(Request $request)
     {
-   
         $validator = Validator::make($request->all(), [
             'name' => 'required|string|max:255',
             'email' => 'required|string|email|max:255|unique:users,email',
             'password' => 'required|string|min:8',
+            'valid_id' => 'required|image|mimes:jpeg,png,jpg,gif|max:2048',
+            'location' => 'required|string|max:255',
         ]);
 
         if ($validator->fails()) {
             return response()->json(['errors' => $validator->errors()], 422);
         }
 
+        $validIdPath = $request->file('valid_id')->store('valid_ids', 'public');
 
         $user = User::create([
             'name' => $request->name,
             'email' => $request->email,
             'password' => Hash::make($request->password),
+            'valid_id' => $validIdPath,
+            'location' => $request->location,
         ]);
 
         return response()->json(['message' => 'User created successfully', 'user' => $user], 201);
@@ -66,24 +70,47 @@ class UserController extends Controller
 
     public function changePassword(Request $request)
     {
-        // Validate the incoming request
         $request->validate([
             'name' => 'required|string',
-            'new_password' => 'required|string|min:8|confirmed', // Ensure password confirmation
+            'new_password' => 'required|string|min:8|confirmed', 
         ]);
-
-        // Find the user by name
         $user = User::where('name', $request->name)->first();
-
-        // Check if the user exists
         if (!$user) {
             return response()->json(['message' => 'User not found'], 404);
         }
-
-        // Update the user's password
         $user->password = Hash::make($request->new_password);
         $user->save();
-
         return response()->json(['message' => 'Password changed successfully']);
     }
+
+    public function updateUser(Request $request, $id)
+{
+    $validator = Validator::make($request->all(), [
+        'status' => 'required|string|max:255',
+        'remarks' => 'nullable|string',
+    ]);
+
+    if ($validator->fails()) {
+        return response()->json(['errors' => $validator->errors()], 422);
+    }
+    $user = User::find($id);
+    if (!$user) {
+        return response()->json(['message' => 'User not found'], 404);
+    }
+    $user->status = $request->status;
+    $user->remarks = $request->remarks;
+    $user->save();
+
+    return response()->json(['message' => 'Status and remarks updated successfully', 'user' => $user]);
+}
+
+public function getPendingUsers()
+{
+    $pendingUsers = User::where('status', 'pending')->get();
+
+    return response()->json([
+        'message' => 'Pending users fetched successfully',
+        'users' => $pendingUsers
+    ]);
+}
 }

@@ -23,14 +23,15 @@ Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
 Route::post('/register', [UserController::class, 'store']);
 Route::post('/login', [UserController::class, 'login']);
 Route::post('/change-password', [UserController::class, 'changePassword']);
+Route::put('/users/status-remarks/{id}', [UserController::class, 'updateUser']);
+Route::get('/users/pending', [UserController::class, 'getPendingUsers']);
 
-
-Route::get('/places', [PlaceController::class, 'index']);  // Get all places
-Route::post('/places', [PlaceController::class, 'store']); // Create a new place
+Route::get('/places', [PlaceController::class, 'index']);  
+Route::post('/places', [PlaceController::class, 'store']); 
 Route::get('/approvedplaces', [PlaceController::class, 'carousel']);
 Route::get('/pending', [PlaceController::class, 'pending']);
-Route::get('/places/{place}', [PlaceController::class, 'show']); // Get a specific place
-Route::put('/places/{place}', [PlaceController::class, 'update']); // Update a place
-Route::delete('/places/{place}', [PlaceController::class, 'destroy']); // Delete a place
+Route::get('/places/{place}', [PlaceController::class, 'show']);
+Route::put('/places/{id}', [PlaceController::class, 'update']); 
+Route::delete('/places/{place}', [PlaceController::class, 'destroy']); 
 Route::put('/places/{id}/status', [PlaceController::class, 'updateStatus']);
 
