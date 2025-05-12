@@ -163,6 +163,7 @@ public function pending()
    
     $request->validate([
         'status' => 'required|string|in:Approved,Pending,Rejected', 
+        'remarks' => 'nullable|string',
     ]);
 
     
@@ -175,8 +176,25 @@ public function pending()
         ], 404);
     }
 
- 
     $place->status = $request->input('status');
+
+    if ($request->has('remarks')) {
+        $place->remarks = $request->input('remarks');
+    } elseif ($request->has('rejection_remarks')) {
+        $place->remarks = $request->input('rejection_remarks');
+    } elseif ($request->has('remark')) {
+        $place->remarks = $request->input('remark');
+    } elseif ($request->has('comment')) {
+        $place->remarks = $request->input('comment');
+    }
+
+    \Log::info('Updating place status and remarks', [
+        'id' => $id,
+        'status' => $place->status,
+        'remarks' => $place->remarks,
+        'request_data' => $request->all()
+    ]);
+
     $place->save();
 
     return response()->json([

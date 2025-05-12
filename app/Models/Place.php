@@ -28,6 +28,7 @@ class Place extends Model
         'history',
         'pricing',
         'activities',
+        'remarks'
     ];
 
     // The attributes that should be hidden for arrays
